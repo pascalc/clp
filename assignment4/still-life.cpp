@@ -37,9 +37,9 @@ public:
   void rulesOfLifeConstraints(Matrix<BoolVarArray> current, Matrix<BoolVarArray> next, int x, int y) {
     BoolVarArgs neighbourList = neighbours(current, x, y);
     // Rule 1: sum(neighbours(x,y)) < 2 <-> next(x,y) = 0 (Boredom)
-    linear(*this, neighbourList, IRT_GQ, 2, Reify(next(x, y)));
+    linear(*this, neighbourList, IRT_GR, 2, Reify(next(x, y)));
     // Rule 2: sum(neighbours(x,y)) > 3 <-> next(x,y) = 0 (Overcrowding)
-    linear(*this, neighbourList, IRT_LQ, 3, Reify(next(x, y)));
+    linear(*this, neighbourList, IRT_LE, 3, Reify(next(x, y)));
     // Rule 3: sum(neighbours(x,y)) = 3 <-> next(x,y) = 1
     linear(*this, neighbourList, IRT_EQ, 3, Reify(next(x, y)));
     // Rule 4: sum(neighbours(x,y)) = 2 <-> next(x,y) = current(x,y)
@@ -67,6 +67,17 @@ public:
     }
 
     branch(*this, current, INT_VAR_SIZE_MIN(), INT_VAL_MAX());
+  }
+
+  // Maximise density
+  virtual void constrain(const Space& _b) {
+    const StillLife& b = static_cast<const StillLife&>(_b);
+    
+    int currentDensity = 0;
+    for (int i = 0; i < current.size(); i++) {
+      currentDensity += current[i].val();
+    }
+    linear(*this, current, IRT_GR, currentDensity);
   }
 
   // Boilerplate
