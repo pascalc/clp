@@ -36,14 +36,14 @@ public:
   
   void rulesOfLifeConstraints(Matrix<BoolVarArray> current, Matrix<BoolVarArray> next, int x, int y) {
     BoolVarArgs neighbourList = neighbours(current, x, y);
-    // Rule 1: sum(neighbours(x,y)) < 2 <-> next(x,y) = 0 (Boredom)
-    linear(*this, neighbourList, IRT_GR, 2, Reify(next(x, y)));
-    // Rule 2: sum(neighbours(x,y)) > 3 <-> next(x,y) = 0 (Overcrowding)
-    linear(*this, neighbourList, IRT_LE, 3, Reify(next(x, y)));
-    // Rule 3: sum(neighbours(x,y)) = 3 <-> next(x,y) = 1
-    linear(*this, neighbourList, IRT_EQ, 3, Reify(next(x, y)));
-    // Rule 4: sum(neighbours(x,y)) = 2 <-> next(x,y) = current(x,y)
-    Reify r(BoolVar(*this, 0, 1));
+    // Rule 1: sum(neighbours(x,y)) < 2 => next(x,y) = 0 (Boredom)
+    linear(*this, neighbourList, IRT_GR, 2, Reify(next(x, y), RM_IMP));
+    // Rule 2: sum(neighbours(x,y)) > 3 => next(x,y) = 0 (Overcrowding)
+    linear(*this, neighbourList, IRT_LE, 3, Reify(next(x, y), RM_IMP));
+    // Rule 3: sum(neighbours(x,y)) = 3 => next(x,y) = 1
+    linear(*this, neighbourList, IRT_EQ, 3, Reify(next(x, y), RM_IMP));
+    // Rule 4: sum(neighbours(x,y)) = 2 => next(x,y) = current(x,y)
+    Reify r(BoolVar(*this, 0, 1), RM_EQV);
     linear(*this, neighbourList, IRT_EQ, 2, r);
     rel(*this, current(x,y), IRT_EQ, next(x, y), r);
   }
